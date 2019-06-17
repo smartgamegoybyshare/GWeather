@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">交通部簡易氣象資料</string>
+    <string name="chose">請選擇欲查詢的縣市 :</string>
+    <string name="update">資料更新說明</string>
+    <string name="search">搜尋</string>
+    <string name="lastsearch">上次搜尋</string>
+    <string name="statement">聲明 : </string>
+    <string name="statementmessage">一切資料皆擷取交通部氣象局之開放資料</string>
+    <string name="updatetime1">本資料每日每三個小時的整點更新</string>
+    <string name="updatetime2">本資料每日每六個小時的整點更新</string>
+    <string name="title1">天氣現象、溫度、相對溼度 : </string>
+    <string name="title2">降雨機率 : </string>
+</resources>
