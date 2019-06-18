@@ -1,6 +1,10 @@
 package com.smartgamegoy.gweather.Activity;
 
+import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.util.Log;
@@ -12,7 +16,10 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
 import com.smartgamegoy.gweather.R;
 import com.smartgamegoy.gweather.SQL.DataBase;
 
@@ -21,16 +28,8 @@ public class ChoseCity extends AppCompatActivity {
     private String TAG = "FirstPage";   //檢視Log日誌時，方便尋找之TAG標籤
     private Vibrator vibrator;  //裝置震動之service
     private DataBase dataBase = new DataBase(this);
-    private String url, Name = "", Wx = "", T = "", RH = "", PoP6h = "", lastDate = "";
-    //url => api網址
-    //Name => 縣市地區
-    //Wx => 天氣現象
-    //T => 溫度
-    //RH => 相對濕度
-    //PoP6h => 降雨機率
-    //lastDate => 最後更新時間
     private String setname; //選擇的縣市
-    private  String[] SiteName = {"基隆市", "新北市", "臺北市", "桃園市", "新竹縣", "宜蘭縣", "苗栗縣",
+    private String[] SiteName = {"基隆市", "新北市", "臺北市", "桃園市", "新竹縣", "宜蘭縣", "苗栗縣",
             "臺中市", "彰化縣", "南投縣", "花蓮縣", "雲林縣", "嘉義縣", "臺南市", "高雄市", "臺東縣",
             "屏東縣", "澎湖縣", "連江縣", "金門縣"};    //此api內所具有的縣市名稱
 
@@ -38,9 +37,9 @@ public class ChoseCity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //隱藏標題欄
-        supportRequestWindowFeature( Window.FEATURE_NO_TITLE);
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         //隱藏狀態欄
-        getWindow().setFlags( WindowManager.LayoutParams.FLAG_FULLSCREEN,
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
         vibrator = (Vibrator) this.getSystemService(VIBRATOR_SERVICE);
@@ -48,37 +47,59 @@ public class ChoseCity extends AppCompatActivity {
         first();
     }
 
-    private void first(){
+    private void first() {
         setContentView(R.layout.chosecity);
 
         Spinner spinner = findViewById(R.id.spinner);
-        Button button1 = findViewById( R.id.button1);   //搜尋的按鈕
-        Button button2 = findViewById( R.id.button2);   //上次搜尋的按鈕
+        Button button1 = findViewById(R.id.button1);   //搜尋的按鈕
+        Button button2 = findViewById(R.id.button2);   //上次搜尋的按鈕
 
-        if(dataBase.getCount() == 0){   //若沒有上次搜尋的紀錄則將上次搜尋的按鈕設為不可按
+        if (dataBase.getCount() == 0) {   //若沒有上次搜尋的紀錄則將上次搜尋的按鈕設為不可按
             button2.setEnabled(false);
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_style,SiteName);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, R.layout.spinner_style, SiteName);
         spinner.setAdapter(adapter);    //將陣列SiteName設入spinner
 
-        spinner.setOnItemSelectedListener(new Spinner.OnItemSelectedListener(){
-            public void onItemSelected(AdapterView adapterView, View view, int position, long id){
+        spinner.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
+            public void onItemSelected(AdapterView adapterView, View view, int position, long id) {
                 setname = SiteName[position];   //選擇的縣市
             }
+
             public void onNothingSelected(AdapterView arg0) {   //沒有選擇無動作
             }
         });
 
         button1.setOnClickListener(view -> {    //查詢現在時間之天氣狀態
             vibrator.vibrate(100);
-            Log.d(TAG, "待增加");
+            if (isWebConnect()) {
+                startsearch();
+            } else {
+                Toast.makeText(this, "請確認網路狀態", Toast.LENGTH_SHORT).show();
+            }
         });
 
         button2.setOnClickListener(view -> {    //調出上次搜尋之紀錄
             vibrator.vibrate(100);
             Log.d(TAG, "待增加");
         });
+    }
+
+    private void startsearch() { //獲取所選的地區之天氣資料
+        Intent intent = new Intent(this, SearchPage.class);
+        intent.putExtra(setname, "setname");
+        startActivity(intent);
+        finish();
+    }
+
+    public boolean isWebConnect() {
+        ConnectivityManager manager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        assert manager != null;
+        NetworkInfo networkInfo = manager.getActiveNetworkInfo();
+        if (networkInfo != null) {
+            return networkInfo.isConnected();
+        }
+        return false;
     }
 
     public boolean onKeyDown(int key, KeyEvent event) {
@@ -99,6 +120,7 @@ public class ChoseCity extends AppCompatActivity {
     @Override
     public void onDestroy() {   //結束此生命週期
         super.onDestroy();
+        dataBase.close();   //關閉資料庫
         Log.d(TAG, "onDestroy()");
     }
 
