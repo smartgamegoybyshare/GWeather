@@ -1,7 +1,10 @@
 package com.smartgamegoy.gweather.Activity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.util.Log;
@@ -65,6 +68,16 @@ public class SearchPage extends AppCompatActivity implements GetWeatherListener 
         textView12 = findViewById(R.id.textView12); //最後更新時間
 
         getWeatherData.actListener(setname, dataBase);  //啟動監聽器
+    }
+
+    public boolean isWebConnect() {
+        ConnectivityManager manager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        assert manager != null;
+        NetworkInfo networkInfo = manager.getActiveNetworkInfo();
+        if (networkInfo != null) {
+            return networkInfo.isConnected();
+        }
+        return false;
     }
 
     private void backup(){  //返回地區選擇頁面
