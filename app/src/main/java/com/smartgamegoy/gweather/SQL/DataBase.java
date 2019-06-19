@@ -1,5 +1,6 @@
 package com.smartgamegoy.gweather.SQL;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -18,9 +19,8 @@ public class DataBase extends SQLiteOpenHelper {
 
     public Cursor select() {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.query("newMemorandum", null, null, null, null,
+        return db.query(table_name, null, null, null, null,
                 null, null, null);
-        return cursor;
     }
 
     @Override
@@ -56,6 +56,7 @@ public class DataBase extends SQLiteOpenHelper {
 
     public int getCount(){
         SQLiteDatabase db = this.getWritableDatabase();
+        @SuppressLint("Recycle")
         Cursor cursor = db.rawQuery("SELECT * FROM " + table_name, null);
         return cursor.getCount();
     }
@@ -63,7 +64,6 @@ public class DataBase extends SQLiteOpenHelper {
     public void deleteAll() {
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("DROP TABLE IF EXISTS " + table_name); //刪除舊有的資料表
-        //db.execSQL("DELETE FROM " + table_name);
         onCreate(db);
     }
 

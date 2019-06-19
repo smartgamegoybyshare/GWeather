@@ -17,6 +17,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import com.smartgamegoy.gweather.R;
 import com.smartgamegoy.gweather.SQL.DataBase;
@@ -70,22 +72,30 @@ public class ChoseCity extends AppCompatActivity {
 
         button1.setOnClickListener(view -> {    //查詢現在時間之天氣狀態
             vibrator.vibrate(100);
-            if (isWebConnect()) {
+            if (isWebConnect())
                 startsearch();
-            } else {
+            else
                 Toast.makeText(this, "請確認網路狀態", Toast.LENGTH_SHORT).show();
-            }
         });
 
         button2.setOnClickListener(view -> {    //調出上次搜尋之紀錄
             vibrator.vibrate(100);
-            Log.d(TAG, "待增加");
+            if(dataBase.getCount() == 0)
+                Toast.makeText(this, "尚無記錄", Toast.LENGTH_SHORT).show();
+            else
+                getSQL();
         });
+    }
+
+    private void getSQL(){
+        Intent intent = new Intent(this, RecordPage.class);
+        startActivity(intent);
+        finish();
     }
 
     private void startsearch() { //獲取所選的地區之天氣資料
         Intent intent = new Intent(this, SearchPage.class);
-        intent.putExtra(setname, "setname");
+        intent.putExtra("setname", setname);
         startActivity(intent);
         finish();
     }
@@ -106,6 +116,14 @@ public class ChoseCity extends AppCompatActivity {
                 break;
             case KeyEvent.KEYCODE_BACK: //按下上一頁的行為
                 vibrator.vibrate(100);
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.app_name)
+                        .setIcon(R.drawable.weather_icon)
+                        .setMessage(R.string.app_message)
+                        .setPositiveButton(R.string.app_message_b1, (dialog, which) -> finish())
+                        .setNegativeButton(R.string.app_message_b2, (dialog, which) -> {
+                            // TODO Auto-generated method stub
+                        }).show();
                 break;
             case KeyEvent.KEYCODE_DPAD_CENTER:
                 break;

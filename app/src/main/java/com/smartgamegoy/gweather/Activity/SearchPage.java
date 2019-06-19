@@ -1,5 +1,6 @@
 package com.smartgamegoy.gweather.Activity;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -11,12 +12,16 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.smartgamegoy.gweather.Listener.GetWeatherData;
 import com.smartgamegoy.gweather.Listener.GetWeatherListener;
 import com.smartgamegoy.gweather.R;
 import com.smartgamegoy.gweather.SQL.DataBase;
+import com.smartgamegoy.gweather.Support.ParaseJson;
+import org.json.JSONObject;
 
 public class SearchPage extends AppCompatActivity implements GetWeatherListener {
 
@@ -24,15 +29,8 @@ public class SearchPage extends AppCompatActivity implements GetWeatherListener 
     private Vibrator vibrator;  //裝置震動之service
     private DataBase dataBase = new DataBase(this);
     private GetWeatherData getWeatherData = new GetWeatherData();
-    private String url, Name = "", Wx = "", T = "", RH = "", PoP6h = "", lastDate = "";
-    //url => api網址
-    //Name => 縣市地區
-    //Wx => 天氣現象
-    //T => 溫度
-    //RH => 相對濕度
-    //PoP6h => 降雨機率
-    //lastDate => 最後更新時間
-    private String setname;
+    private ParaseJson paraseJson = new ParaseJson();
+    private String setname; //setname => 縣市地區
     private TextView textView2, textView4, textView6, textView8, textView10, textView12;
 
     @Override
@@ -66,8 +64,23 @@ public class SearchPage extends AppCompatActivity implements GetWeatherListener 
         textView8 = findViewById(R.id.textView8);   //相對濕度
         textView10 = findViewById(R.id.textView10); //降雨機率
         textView12 = findViewById(R.id.textView12); //最後更新時間
+        Button b1 = findViewById(R.id.button1);
+        Button b2 = findViewById(R.id.button2);
 
-        getWeatherData.actListener(setname, dataBase);  //啟動監聽器
+        b1.setOnClickListener(view -> {
+            vibrator.vibrate(100);
+            if(isWebConnect())
+                getWeatherData.actListener(setname, SearchPage.this);  //啟動監聽器
+            else
+                Toast.makeText(this, "請確認網路狀態", Toast.LENGTH_SHORT).show();
+        });
+
+        b2.setOnClickListener(view -> {
+            vibrator.vibrate(100);
+            backup();
+        });
+
+        getWeatherData.actListener(setname, this);  //啟動監聽器
     }
 
     public boolean isWebConnect() {
@@ -141,7 +154,24 @@ public class SearchPage extends AppCompatActivity implements GetWeatherListener 
     }
 
     @Override
-    public void getWeather() {
-        Log.d(TAG, "待增加");
+    public void getWeather(JSONObject getJson, String lastTime) {   //lastTime => 最後更新時間
+        paraseJson.makeParase(getJson, lastTime, getWeatherData);
+    }
+
+    @SuppressLint("SetTextI18n")
+    @Override
+    public void setTextView(String lastTime) {  //lastTime => 最後更新時間
+        textView2.setText(setname);
+        textView4.setText(paraseJson.getWx());
+        textView6.setText(paraseJson.getT() + (char) (186) + "C");
+        textView8.setText(paraseJson.getRH() + "%");
+        textView10.setText(paraseJson.getPoP6h() + "%");
+        textView12.setText(lastTime);
+
+        if(dataBase.getCount() != 0){
+            dataBase.deleteAll();
+        }
+        dataBase.insert(setname, paraseJson.getWx(), paraseJson.getT(), paraseJson.getRH(),
+                paraseJson.getPoP6h(), lastTime);
     }
 }
